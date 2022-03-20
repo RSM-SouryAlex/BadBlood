@@ -1,5 +1,5 @@
-﻿Function CreateUser{
-
+﻿Function CreateUser
+{
     <#
         .SYNOPSIS
             Creates a user in an active directory environment based on random data
@@ -40,58 +40,75 @@
         [Parameter(Mandatory = $false,
             Position = 1,
             HelpMessage = 'Supply a result from get-addomain')]
-            [Object[]]$Domain,
+        [Object[]]$Domain,
+        
         [Parameter(Mandatory = $false,
             Position = 2,
             HelpMessage = 'Supply a result from get-adorganizationalunit -filter *')]
-            [Object[]]$OUList,
+        [Object[]]$OUList,
+        
         [Parameter(Mandatory = $false,
             Position = 3,
             HelpMessage = 'Supply the script directory for where this script is stored')]
         [string]$ScriptDir
     )
     
-        if(!$PSBoundParameters.ContainsKey('Domain')){
-            if($args[0]){
-                $setDC = $args[0].pdcemulator
-                $dnsroot = $args[0].dnsroot
-            }
-            else{
+    if(!$PSBoundParameters.ContainsKey('Domain'))
+    {
+        if($args[0])
+        {
+            $setDC = $args[0].pdcemulator
+            $dnsroot = $args[0].dnsroot
+        }
+        else
+        {
                 $setDC = (Get-ADDomain).pdcemulator
                 $dnsroot = (get-addomain).dnsroot
-            }
         }
-            else {
-                $setDC = $Domain.pdcemulator
-                $dnsroot = $Domain.dnsroot
-            }
-        if (!$PSBoundParameters.ContainsKey('OUList')){
-            if($args[1]){
-                $OUsAll = $args[1]
-            }
-            else{
-                $OUsAll = get-adobject -Filter {objectclass -eq 'organizationalunit'} -ResultSetSize 300
-            }
-        }else {
-            $OUsAll = $OUList
-        }
-        if (!$PSBoundParameters.ContainsKey('ScriptDir')){
-            
-            if($args[2]){
+    }        
+    else 
+    {
+        $setDC = (Get-ADDomain).pdcemulator
+        $dnsroot = $Domain.dnsroot
+    }
 
-                # write-host "line 70"
-                $scriptPath = $args[2]}
-            else{
-                    # write-host "did i get here"
-                    $scriptPath = "$((Get-Location).path)\AD_Users_Create\"
-            }
-            
-        }else{
-            $scriptpath = $ScriptDir
+    if(!$PSBoundParameters.ContainsKey('OUList'))
+    {
+        if($args[1])
+        {
+            $OUsAll = $args[1]
         }
+        else
+        {
+            $OUsAll = get-adobject -Filter {objectclass -eq 'organizationalunit'} -ResultSetSize 300
+        }
+    }
+    else 
+    {
+        $OUsAll = $OUList
+    }
+        
+    if(!$PSBoundParameters.ContainsKey('ScriptDir'))
+    {            
+        if($args[2])
+        {
+
+            # write-host "line 70"
+            $scriptPath = $args[2]
+        }
+        else
+        {
+            # write-host "did i get here"
+            $scriptPath = "$((Get-Location).path)\AD_Users_Create\"
+        }
+            
+    }
+    else
+    {
+        $scriptpath = $ScriptDir
+    }
     
-    
-    
+            
     function New-SWRandomPassword {
         <#
         .Synopsis
@@ -229,97 +246,103 @@
             }
         }
     }
-    
-        
-    #get owner all parameters and store as variable to call upon later
-           
-        
-    
-    #=======================================================================
-    
-    #will work on adding things to containers later $ousall += get-adobject -Filter {objectclass -eq 'container'} -ResultSetSize 300|where-object -Property objectclass -eq 'container'|where-object -Property distinguishedname -notlike "*}*"|where-object -Property distinguishedname -notlike  "*DomainUpdates*"
+            
+    # get owner all parameters and store as variable to call upon later                      
+    # ======================================================================    
+    # will work on adding things to containers later 
+    # $ousall += get-adobject -Filter {objectclass -eq 'container'} -ResultSetSize 300|where-object -Property objectclass -eq 'container'|where-object -Property distinguishedname -notlike "*}*"|where-object -Property distinguishedname -notlike  "*DomainUpdates*"
     
     $ouLocation = (Get-Random $OUsAll).distinguishedname
+            
+    $accountType = 1..100 | Get-Random
     
+    if($accountType -le 3)
+    { 
+        # X percent chance of being a service account
+        #service
+        $nameSuffix = "SA"
+        $description = 'Created with secframe.com/badblood.'
+        #removing do while loop and making random number range longer, sorry if the account is there already
+        # this is so that I can attempt to import multithreading on user creation
     
-    
-    $accountType = 1..100|get-random 
-    if($accountType -le 3){ # X percent chance of being a service account
-    #service
-    $nameSuffix = "SA"
-    $description = 'Created with secframe.com/badblood.'
-    #removing do while loop and making random number range longer, sorry if the account is there already
-    # this is so that I can attempt to import multithreading on user creation
-    
-        $name = ""+ (Get-Random -Minimum 100 -Maximum 9999999999) + "$nameSuffix"
+        $name = ""+ (Get-Random -Minimum 100 -Maximum 9999999999) + "$nameSuffix"                
+    }
+    else
+    {
+        $surname = get-content("$($scriptpath)\Names\familynames-usa-top1000.txt") | Get-Random
         
-        
-    }else{
-        $surname = get-content("$($scriptpath)\Names\familynames-usa-top1000.txt")|get-random
         # Write-Host $surname
-    $genderpreference = 0,1|get-random
-    if ($genderpreference -eq 0){$givenname = get-content("$($scriptpath)\Names\femalenames-usa-top1000.txt")|get-random}else{$givenname = get-content($scriptpath + '\Names\malenames-usa-top1000.txt')|get-random}
-    $name = $givenname+"_"+$surname
+        $genderpreference = 0,1 | Get-Random
+        if($genderpreference -eq 0)
+        {
+            $givenname = Get-Content("$($scriptpath)\Names\femalenames-usa-top1000.txt") | Get-Random
+        }
+        else
+        {
+            $givenname = Get-Content($scriptpath + '\Names\malenames-usa-top1000.txt') | Get-Random
+        }
+        
+        $name = $givenname + " " + $surname
+        $samaccountname = $givenname.ToLower()[0] + $surname.ToLower()
     }
     
-        $departmentnumber = [convert]::ToInt32('9999999') 
-        
+    $departmentnumber = [convert]::ToInt32('9999999')         
         
     #Need to figure out how to do the L attribute
     $description = 'Created with secframe.com/badblood.'
     $pwd = New-SWRandomPassword -MinPasswordLength 22 -MaxPasswordLength 25
-    #======================================================================
-    # 
     
-    $passwordinDesc = 1..1000|get-random
+    $passwordinDesc = 1..1000| get-random
         
-        $pwd = New-SWRandomPassword -MinPasswordLength 22 -MaxPasswordLength 25
-            if ($passwordinDesc -lt 10) { 
-                $description = 'Just so I dont forget my password is ' + $pwd 
-            }else{}
-    if($name.length -gt 20){
+    $pwd = New-SWRandomPassword -MinPasswordLength 22 -MaxPasswordLength 25
+
+    if($passwordinDesc -lt 10)
+    { 
+        $description = 'Just so I dont forget my password is ' + $pwd 
+    }
+
+    if($name.length -gt 20)
+    {
         $name = $name.substring(0,20)
     }
 
     $exists = $null
-    try {
+    
+    try 
+    {
         $exists = Get-ADUSer $name -ErrorAction Stop
-    } catch{}
+    } 
+    catch{}
 
-    if($exists){
+    if($exists)
+    {
         return $true
     }
 
-    new-aduser -server $setdc  -Description $Description -DisplayName $name -name $name -SamAccountName $name -Surname $name -Enabled $true -Path $ouLocation -AccountPassword (ConvertTo-SecureString ($pwd) -AsPlainText -force)
-    
-    
-    
-        
-    
+    New-ADUser -server $setdc -Description $Description -DisplayName $name -name $name -GivenName $givenname -SamAccountName $samaccountname -Surname $surname -Enabled $true -Path $ouLocation -AccountPassword (ConvertTo-SecureString ($pwd) -AsPlainText -force)
+                       
     $pwd = ''
 
-    #==============================
-    # Set Does Not Require Pre-Auth for ASREP
-    #==============================
+    #region Set Does Not Require Pre-Auth for ASREP
     
-    $setASREP = 1..1000|get-random
-    if($setASREP -lt 20){
-	Get-ADuser $name | Set-ADAccountControl -DoesNotRequirePreAuth:$true
+    $setASREP = 1..1000 | Get-Random
+    
+    if($setASREP -lt 20)
+    {
+	    Get-ADuser $name | Set-ADAccountControl -DoesNotRequirePreAuth:$true
     }
+    #endregion
     
-    #===============================
-    #SET ATTRIBUTES - no additional attributes set at this time besides UPN
+    #region SET ATTRIBUTES - no additional attributes set at this time besides UPN
     #Todo: Set SPN for kerberoasting.  Example attribute edit is in createcomputers.ps1
-    #===============================
     
     $upn = $name + '@' + $dnsroot
-    try{Set-ADUser -Identity $name -UserPrincipalName "$upn" }
-    catch{}
-    
-    # return $false
-    ################################
-    #End Create User Objects
-    ################################
-    
+    try
+    {
+        Set-ADUser -Identity $name -UserPrincipalName "$upn" 
     }
+    catch{}
+    #endregion
+        
+}
     

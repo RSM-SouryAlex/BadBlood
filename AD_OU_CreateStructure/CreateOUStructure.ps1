@@ -74,6 +74,7 @@ foreach ($name in $TopLevelOUs) {
             $csvdn = "OU=" + $ou.name + "," + $fulldn 
             
             foreach ($ObjectSubOU in $ObjectSubOUs) {
+                Write-Host $ObjectSubOU -ForegroundColor Magenta
                 New-ADOrganizationalUnit -Name $ObjectSubOU -Path $csvdn
                 $Objectfulldn = "OU=" + $ObjectSubOU + "," + $csvdn
             }

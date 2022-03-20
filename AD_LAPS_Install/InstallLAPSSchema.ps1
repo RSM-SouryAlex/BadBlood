@@ -1,14 +1,12 @@
-function Get-ScriptDirectory {
-    Split-Path -Parent $PSCommandPath
-}
-$scriptPath = Get-ScriptDirectory
 
-copy-item -path ($scriptpath + "\admpwd.ps") -destination "C:\Windows\System32\WindowsPowerShell\v1.0\Modules"
-get-childitem -path ($scriptpath + "\admpwd.ps") -recurse |Foreach-object {
-    Copy-item -literalpath $_.fullname -destination "C:\Windows\System32\WindowsPowerShell\v1.0\Modules\admpwd.ps"
+$scriptPath = Get-Location
+
+Copy-Item -Path ($scriptpath + "\admpwd.ps") -Destination "C:\Windows\System32\WindowsPowerShell\v1.0\Modules"
+Get-ChildItem -Path ($scriptpath + "\admpwd.ps") -Recurse | Foreach-object {
+    Copy-Item -LiteralPath $_.fullname -Destination "C:\Windows\System32\WindowsPowerShell\v1.0\Modules\admpwd.ps"
 }
-copy-item -path ($scriptpath + "\AdmPwd.admx") -destination "C:\Windows\PolicyDefinitions"
-copy-item -path ($scriptpath + "\AdmPwd.adml") -destination "C:\Windows\PolicyDefinitions\en-US"
+Copy-Item -Path ($scriptpath + "\AdmPwd.admx") -Destination "C:\Windows\PolicyDefinitions"
+Copy-Item -Path ($scriptpath + "\AdmPwd.adml") -Destination "C:\Windows\PolicyDefinitions\en-US"
 
 Import-Module ADMPwd.ps
 Update-AdmPwdADSchema

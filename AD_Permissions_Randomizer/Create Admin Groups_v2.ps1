@@ -1,8 +1,10 @@
 ﻿#import config file of group types to create
 Import-Module ActiveDirectory
-function Get-ScriptDirectory {
+function Get-ScriptDirectory 
+{
     Split-Path -Parent $PSCommandPath
 }
+
 $scriptPath = Get-ScriptDirectory
 $adplatformsourcedir = split-path -Path $scriptPath -Parent
 $permissionset = .($adplatformsourcedir + "\AD_Group_CreateAdminGroups\AD Permissions for Group Granular Access.ps1")
@@ -16,17 +18,20 @@ $3LetterCodeCSV = $adplatformsourcedir + '\AD_OU_CreateStructure\3lettercodes.cs
 $ACLScriptspath = $adplatformsourcedir + "\AD_OU_SetACL"
 
 $files = Get-ChildItem $ACLScriptspath -Name "*permissions.ps1"
-    foreach ($file in $files){
+foreach ($file in $files)
+{
     .($aclscriptspath + "\"+$file)
-    }
+}
 #=============================================
 $dn = (Get-ADDomain).distinguishedname
 #ADMIN Group Locations
 #=============================================
 #Tier 1
 $Tier1GroupLocation = "OU=T1-Permissions,OU=Tier 1,OU=Admin" + ","+ $dn
+
 #Tier 2
 $Tier2GroupLocation = "OU=T2-Permissions,OU=Tier 2,OU=Admin" + "," + $dn
+
 cd ad:
 $dc = (get-addomain).PDCEmulator
 #=============================================
@@ -48,9 +53,6 @@ $dc = (get-addomain).PDCEmulator
         Get-ADObject -SearchBase ($schemaPath.ConfigurationNamingContext) -LDAPFilter `
         "(&(objectclass=controlAccessRight)(rightsguid=*))" -Properties displayName,rightsGuid | 
         % {$extendedrightsmap[$_.displayName]=[System.GUID]$_.rightsGuid}
-
-
-
 
 
         #split csv lists into separate csvs because of the different OU structure
