@@ -62,8 +62,8 @@
         }
         else
         {
-                $setDC = (Get-ADDomain).pdcemulator
-                $dnsroot = (get-addomain).dnsroot
+            $setDC = (Get-ADDomain).pdcemulator
+            $dnsroot = (get-addomain).dnsroot
         }
     }        
     else 
@@ -259,13 +259,12 @@
     if($accountType -le 3)
     { 
         # X percent chance of being a service account
-        #service
         $nameSuffix = "SA"
         $description = 'Created with secframe.com/badblood.'
         #removing do while loop and making random number range longer, sorry if the account is there already
         # this is so that I can attempt to import multithreading on user creation
     
-        $name = ""+ (Get-Random -Minimum 100 -Maximum 9999999999) + "$nameSuffix"                
+        $name = "" + (Get-Random -Minimum 100 -Maximum 9999999999) + '_' + "$nameSuffix"                
     }
     else
     {
@@ -294,8 +293,6 @@
     
     $passwordinDesc = 1..1000| get-random
         
-    $pwd = New-SWRandomPassword -MinPasswordLength 22 -MaxPasswordLength 25
-
     if($passwordinDesc -lt 10)
     { 
         $description = 'Just so I dont forget my password is ' + $pwd 
